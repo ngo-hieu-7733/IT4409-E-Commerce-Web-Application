@@ -1,0 +1,99 @@
+# compiled output
+backend/dist
+backend/node_modules
+backend/build
+
+# Logs
+backend/logs
+backend/*.log
+backend/npm-debug.log*
+backend/pnpm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+backend/lerna-debug.log*
+
+# OS
+backend/.DS_Store
+
+# Tests
+backend/coverage
+backend/.nyc_output
+
+# IDEs and editors
+backend/.idea
+backend/.project
+backend/.classpath
+backend/.c9/
+backend/*.launch
+backend/.settings/
+backend/*.sublime-workspace
+
+# IDE - VSCode
+backend/.vscode/*
+backend/.vscode/settings.json
+backend/.vscode/tasks.json
+backend/.vscode/launch.json
+backend/.vscode/extensions.json
+
+# dotenv environment variable files
+backend/.env
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+backend/.env.local
+
+# temp directory
+backend/.temp
+backend/.tmp
+
+# Runtime data
+backend/pids
+backend/*.pid
+backend/*.seed
+backend/*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+backend/report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# frontend
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+shopcartyt/node_modules
+shopcartyt/.pnp
+shopcartyt/.pnp.*
+.yarn/*
+!.yarn/patches
+shopcartyt/.yarn/plugins
+shopcartyt/.yarn/releases
+shopcartyt/.yarn/versions
+
+# testing
+shopcartyt/coverage
+
+# next.js
+shopcartyt/.next/
+shopcartyt/out/
+
+# production
+shopcartyt/build
+
+# misc
+shopcartyt/.DS_Store
+*.pem
+
+# debug
+shopcartyt/npm-debug.log*
+shopcartyt/yarn-debug.log*
+shopcartyt/yarn-error.log*
+shopcartyt/.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+shopcartyt/.env*
+
+# vercel
+shopcartyt/.vercel
+
+# typescript
+shopcartyt/*.tsbuildinfo
+shopcartyt/next-env.d.ts
