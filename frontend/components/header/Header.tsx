@@ -1,13 +1,13 @@
-import Container from "./Container";
-import Logo from "./Logo";
-import HeaderMenu from "./HeaderMenu";
-import SearchBar from "./SearchBar";
-import CartIcon from "./CartIcon";
-import FavoriteButton from "./FavoriteButton";
-import SignIn from "./SignIn";
-import MobileMenu from "./MobileMenu";
 import { currentUser } from "@clerk/nextjs/server"
 import { ClerkLoaded, SignedIn, UserButton } from "@clerk/nextjs";
+import Container from "../Container";
+import Logo from "./side-menu/Logo";
+import HeaderMenu from "./HeaderMenu";
+import SearchBar from "./actions/SearchBar";
+import CartIcon from "./actions/CartIcon";
+import FavoriteButton from "./actions/FavoriteButton";
+import SignIn from "./actions/SignIn";
+import MobileMenu from "./side-menu/MobileMenu";
 
 const Header = async () => {
 
