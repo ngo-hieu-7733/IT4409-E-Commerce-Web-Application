@@ -47,7 +47,7 @@ const SocialMedia = ({className, iconClassName, tooltipClassName}:Props) => {
 
           <TooltipTrigger asChild>
             <Link
-              
+              key={item?.title}
               href={item?.href}
               className={cn("p-2 border rounded-full hover:text-white hover:border-shop_light_green hoverEffect", iconClassName)}
             >
