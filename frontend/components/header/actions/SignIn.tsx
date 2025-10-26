@@ -1,5 +1,4 @@
 import { SignInButton } from "@clerk/nextjs";
-import SignInButtonFoo from "./SignInButtonFoo";
 
 const SignIn = () => {
   return (
