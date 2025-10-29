@@ -12,7 +12,6 @@ import MobileMenu from "./side-menu/MobileMenu";
 const Header = async () => {
 
   const user = await currentUser()
-  console.log(user)
 
   return (
     <header className="bg-white py-5">
