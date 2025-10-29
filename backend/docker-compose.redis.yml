@@ -1,12 +1,11 @@
-
 services:
   redis:
     image: redis:latest
     container_name: redis-server
     restart: always
     ports:
-      - "6379:6379"
-    command: ["redis-server", "--appendonly", "no"]
+      - '5002:6379'
+    command: ['redis-server', '--appendonly', 'no']
 
   redis-commander:
     image: rediscommander/redis-commander:latest
@@ -15,4 +14,4 @@ services:
     environment:
       - REDIS_HOSTS=local:redis:6379
     ports:
-      - "8081:8081"
+      - '5003:8081'

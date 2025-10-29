@@ -5,9 +5,9 @@ services:
         restart: always
         environment:
             MYSQL_ROOT_PASSWORD: rootpassword
-            MYSQL_DATABASE: book_hub
+            MYSQL_DATABASE: it4409_shop
         ports:
-            - '3306:3306'
+            - '5001:3306'
         volumes:
             - mysql_data:/var/lib/mysql
 
