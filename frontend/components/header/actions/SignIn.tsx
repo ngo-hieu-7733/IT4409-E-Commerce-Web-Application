@@ -3,16 +3,19 @@ import Link from "next/link";
 
 const SignIn = () => {
   return (
-    // <SignInButton mode="modal">
-    //   <button className="text-sm font-semibold hover:text-shop_dark_green hoverEffect hover:cursor-pointer">
-    //     Login
-    //   </button>
-    // </SignInButton>
-    <Link href={"/login"}>
+    // Use clerk for auth
+    <SignInButton mode="modal">
       <button className="text-sm font-semibold hover:text-shop_dark_green hoverEffect hover:cursor-pointer">
         Login
       </button>
-    </Link >
+    </SignInButton>
+
+    // Use normal auth
+    // <Link href={"/login"}>
+    //   <button className="text-sm font-semibold hover:text-shop_dark_green hoverEffect hover:cursor-pointer">
+    //     Login
+    //   </button>
+    // </Link >
   )
 };
 
