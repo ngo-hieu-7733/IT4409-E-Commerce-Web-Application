@@ -4,7 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-	--font-poppins: poppins, sans-serif;
+	--font-poppins: 'Poppins', sans-serif;
 	--color-shop_light_pink: #fcf0e4;
 	--color-shop_dark_green: #063c28;
 	--color-shop_btn_dark_green: #063d29;

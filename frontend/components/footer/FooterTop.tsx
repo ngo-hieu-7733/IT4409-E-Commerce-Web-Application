@@ -1,5 +1,6 @@
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import React from "react";
+import { SubText } from "../ui/text";
 
 interface ContactItemData {
   title: string;
@@ -43,15 +44,15 @@ const FooterTop = () => {
     <div className="border-b grid grid-cols-2 lg:grid-cols-4 gap-8">
 
       {data?.map((item, index) => (
-
         <div key={index} className="flex items-center gap-3 p-4 hover:bg-gray-100 group hoverEffect ">
           {item?.icon}
+
           <div>
             <h3 className="font-bold text-gray-900 group-hover:text-black hoverEffect">{item?.title}</h3>
-            <p className="text-gray-600 text-sm tracking-wide group-hover:text-gray-900 hoverEffect">{item?.subtitle}</p>
+            <SubText className="group-hover:text-gray-900 hoverEffect">{item?.subtitle}</SubText>
           </div>
+          
         </div>
-
       ))}
 
     </div>
