@@ -11,7 +11,7 @@ import MobileMenu from "./side-menu/MobileMenu";
 
 const Header = async () => {
 
-  const user = await currentUser()
+  const user = await currentUser()  // <-- clerk
 
   return (
     <header className="bg-white py-5">
@@ -25,12 +25,14 @@ const Header = async () => {
           <SearchBar />
           <CartIcon />
           <FavoriteButton />
-          <ClerkLoaded>
+
+          <ClerkLoaded> {/*<-- clerk*/}
             <SignedIn>
               <UserButton/>
             </SignedIn>
             {!user && <SignIn />}
           </ClerkLoaded>
+
         </div>
       </Container>
     </header>
