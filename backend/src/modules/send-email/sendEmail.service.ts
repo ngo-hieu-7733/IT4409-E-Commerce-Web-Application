@@ -31,7 +31,7 @@ export class SendEmailService {
             { to, subject, html },
             {
                 removeOnComplete: true,
-                attempts: 3,
+                attempts: 2,
                 backoff: {
                     type: 'exponential',
                     delay: 1000,

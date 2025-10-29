@@ -51,9 +51,18 @@ export class BusinessCacheRepository {
 
     async cacheTokenVersion(userId: string, tokenVersion: number) {
         await this.cacheService.set(`tokenVersion:${userId}`, tokenVersion, 0);
+        await this.cacheService.set(
+            `user:${userId}:tokenVersion`,
+            tokenVersion,
+            0,
+        );
     }
 
     async getTokenVersion(userId: string) {
+        const newKey = await this.cacheService.get(
+            `user:${userId}:tokenVersion`,
+        );
+        if (newKey !== null && newKey !== undefined) return newKey;
         return await this.cacheService.get(`tokenVersion:${userId}`);
     }
 

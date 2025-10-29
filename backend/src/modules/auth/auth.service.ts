@@ -14,10 +14,6 @@ import { LoginDto } from './dto/login-body.dto';
 
 import { JwtService } from '@nestjs/jwt';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import {
-    sendMailForgotPasswordOtp,
-    sendMailRegisterOtp,
-} from 'src/shared/utils/sendEmail.util';
 import { BusinessCacheRepository } from '../redis/business-cache.repository';
 import { SendEmailService } from '../send-email/sendEmail.service';
 
@@ -115,7 +111,7 @@ export class AuthService {
 
         await this.businessCacheRepository.saveOtp(email, newOtp);
 
-        sendMailRegisterOtp(
+        await this.sendEmailService.sendMailRegisterOtp(
             email,
             `Chào mừng: OTP xác thực tài khoản ${email}`,
             newOtp,
@@ -187,9 +183,24 @@ export class AuthService {
             );
         }
 
+        // Determine token version using Redis first for consistency
+        let tokenVersionToUse: number;
+        const cached = await this.businessCacheRepository.getTokenVersion(
+            findUser.id,
+        );
+        if (cached) {
+            tokenVersionToUse = Number(cached);
+        } else {
+            tokenVersionToUse = findUser.tokenVersion;
+            await this.businessCacheRepository.cacheTokenVersion(
+                findUser.id,
+                tokenVersionToUse,
+            );
+        }
+
         const payload = {
             id: findUser.id,
-            tokenVersion: findUser.tokenVersion,
+            tokenVersion: tokenVersionToUse,
             role: findUser.role,
         };
         const accessToken = this.jwtService.sign(payload, {
@@ -200,12 +211,6 @@ export class AuthService {
             secret: process.env.JWT_REFRESH_KEY,
             expiresIn: '7d',
         });
-
-        //Cache
-        await this.businessCacheRepository.cacheTokenVersion(
-            findUser.id,
-            findUser.tokenVersion,
-        );
 
         return {
             accessToken,
@@ -232,9 +237,23 @@ export class AuthService {
             );
         }
 
+        let tokenVersionToUse: number;
+        const cached = await this.businessCacheRepository.getTokenVersion(
+            findUser.id,
+        );
+        if (cached) {
+            tokenVersionToUse = Number(cached);
+        } else {
+            tokenVersionToUse = findUser.tokenVersion;
+            await this.businessCacheRepository.cacheTokenVersion(
+                findUser.id,
+                tokenVersionToUse,
+            );
+        }
+
         let payload: any = {
             id: findUser.id,
-            tokenVersion: findUser.tokenVersion,
+            tokenVersion: tokenVersionToUse,
             role: findUser.role,
         };
 
@@ -252,12 +271,6 @@ export class AuthService {
             secret: process.env.JWT_REFRESH_KEY,
             expiresIn: '7d',
         });
-
-        //Cache
-        await this.businessCacheRepository.cacheTokenVersion(
-            findUser.id,
-            findUser.tokenVersion,
-        );
 
         return { accessToken, refreshToken, message };
     }
@@ -444,7 +457,7 @@ export class AuthService {
             otp,
         );
 
-        sendMailForgotPasswordOtp(
+        await this.sendEmailService.sendMailForgotPasswordOtp(
             email,
             `OTP quên mật khẩu ${email} - ${role}`,
             otp,

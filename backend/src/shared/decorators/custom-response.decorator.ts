@@ -1,6 +1,5 @@
 import { applyDecorators, HttpCode, Type } from '@nestjs/common';
 import {
-    ApiOkResponse,
     ApiOperation,
     ApiExtraModels,
     getSchemaPath,
