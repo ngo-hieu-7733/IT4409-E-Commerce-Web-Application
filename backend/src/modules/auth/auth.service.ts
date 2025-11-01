@@ -131,6 +131,14 @@ export class AuthService {
 
         const registerDataJson = JSON.parse(registerData as string);
 
+        const findUserPhone = await this.userRepository.findOne({
+            where: { phone: registerDataJson.phone },
+        });
+        if (findUserPhone) {
+            await this.businessCacheRepository.deleteOtpRegisterData(email);
+            throw new ConflictException('Số điện thoại đã tồn tại');
+        }
+
         const newUser = this.userRepository.create({
             fullName: registerDataJson.fullName,
             email: registerDataJson.email,
