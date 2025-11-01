@@ -74,14 +74,10 @@ export class BusinessCacheRepository {
         );
         const unixNow = Math.floor(Date.now() / 1000);
         await this.cacheService.set(
-            `otp_countdown:${email}:${role}`,
+            `otp_countdown:${email}`,
             unixNow + this.OTP_COUNTDOWN_EXPIRATION,
             this.OTP_COUNTDOWN_EXPIRATION * 1000,
         );
-    }
-
-    async getOtpCountdownForgotPassword(email: string, role: string) {
-        return await this.cacheService.ttl(`otp_countdown:${email}:${role}`);
     }
 
     async getOtpForgotPassword(email: string, role: string) {
@@ -92,6 +88,6 @@ export class BusinessCacheRepository {
 
     async deleteOtpForgotPassword(email: string, role: string) {
         await this.cacheService.del(`otp_forgot_password:${email}:${role}`);
-        await this.cacheService.del(`otp_countdown:${email}:${role}`);
+        await this.cacheService.del(`otp_countdown:${email}`);
     }
 }

@@ -8,7 +8,7 @@ import {
     genHtmlStoreAccount,
     genHtmlStoreAccountReject,
     genHtmlVerifyForgotEmail,
-} from 'src/shared/utils/genHTML.util';
+} from 'src/modules/send-email/genHTML.util';
 
 @Injectable()
 export class SendEmailService {

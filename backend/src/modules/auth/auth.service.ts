@@ -1,8 +1,9 @@
 import {
     BadRequestException,
-    HttpException,
     Injectable,
     UnauthorizedException,
+    ConflictException,
+    NotFoundException,
 } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
@@ -33,14 +34,14 @@ export class AuthService {
             where: { email: data.email },
         });
         if (findUserEmail) {
-            throw new BadRequestException('Email đã tồn tại');
+            throw new ConflictException('Email đã tồn tại');
         }
 
         const findUserPhone = await this.userRepository.findOne({
             where: { phone: data.phone },
         });
         if (findUserPhone) {
-            throw new BadRequestException('Số điện thoại đã tồn tại');
+            throw new ConflictException('Số điện thoại đã tồn tại');
         }
 
         const findUserInRedis =
@@ -53,7 +54,7 @@ export class AuthService {
                     `Bạn đã gửi OTP quá nhanh, vui lòng chờ ${otpCountdownFind} giây để gửi lại`,
                 );
             } else {
-                throw new BadRequestException('Email này đã đăng ký');
+                throw new ConflictException('Email này đã đăng ký');
             }
         }
 
@@ -74,14 +75,6 @@ export class AuthService {
             data.email,
             redisData,
         );
-
-        // await sendMailRegisterOtp(
-        //     data.email,
-        //     `Chào mừng: OTP xác thực tài khoản ${data.email}`,
-        //     otp,
-        //     process.env.NODE_ENV,
-        // );
-
         await this.sendEmailService.sendMailRegisterOtp(
             data.email,
             `Chào mừng: OTP xác thực tài khoản ${data.email}`,
@@ -96,7 +89,7 @@ export class AuthService {
         const otpFind = await this.businessCacheRepository.getOtp(email);
 
         if (!otpFind) {
-            throw new HttpException('Bạn chưa gửi OTP', 401);
+            throw new BadRequestException('Bạn chưa gửi OTP');
         }
 
         const otpCountdownFind =
@@ -162,7 +155,7 @@ export class AuthService {
 
     async login(dto: LoginDto) {
         const findUser = await this.userRepository.findOne({
-            where: { email: dto.email, role: In(['user', 'admin']) },
+            where: { email: dto.email, role: In(['user']) },
         });
 
         if (!findUser) {
@@ -172,7 +165,7 @@ export class AuthService {
         }
 
         if (findUser.mustChangePassword) {
-            throw new BadRequestException('Bạn cần thay đổi mật khẩu');
+            throw new UnauthorizedException('Bạn cần thay đổi mật khẩu');
         }
 
         const isdValid = await bcrypt.compare(dto.password, findUser.password);
@@ -183,7 +176,6 @@ export class AuthService {
             );
         }
 
-        // Determine token version using Redis first for consistency
         let tokenVersionToUse: number;
         const cached = await this.businessCacheRepository.getTokenVersion(
             findUser.id,
@@ -218,9 +210,9 @@ export class AuthService {
         };
     }
 
-    async loginStore(dto: LoginDto) {
+    async loginAdmin(dto: LoginDto) {
         const findUser = await this.userRepository.findOne({
-            where: { email: dto.email, role: 'store' },
+            where: { email: dto.email, role: 'admin' },
         });
 
         if (!findUser) {
@@ -256,10 +248,7 @@ export class AuthService {
             tokenVersion: tokenVersionToUse,
             role: findUser.role,
         };
-
-        let message = 'Đăng nhập thành công';
         if (findUser.mustChangePassword) {
-            message = 'Đăng nhập thành công. Bạn cần thay đổi mật khẩu';
             payload = { ...payload, mustChangePassword: true };
         }
 
@@ -272,7 +261,7 @@ export class AuthService {
             expiresIn: '7d',
         });
 
-        return { accessToken, refreshToken, message };
+        return { accessToken, refreshToken };
     }
 
     async logout(refreshToken: string) {
@@ -310,9 +299,9 @@ export class AuthService {
         }
     }
 
-    async refresh_token(refreshToken: string) {
+    async refresh_token(oldRefreshToken: string) {
         try {
-            const userJwt = this.jwtService.verify(refreshToken, {
+            const userJwt = this.jwtService.verify(oldRefreshToken, {
                 secret: process.env.JWT_REFRESH_KEY,
             });
 
@@ -348,19 +337,19 @@ export class AuthService {
                 }),
             };
 
-            const accessTokenRes = this.jwtService.sign(payload, {
+            const accessToken = this.jwtService.sign(payload, {
                 secret: process.env.JWT_ACCESS_KEY,
                 expiresIn: '1h',
             });
 
-            const refreshTokenRes = this.jwtService.sign(payload, {
+            const refreshToken = this.jwtService.sign(payload, {
                 secret: process.env.JWT_REFRESH_KEY,
                 expiresIn: '7d',
             });
 
             return {
-                accessTokenRes,
-                refreshTokenRes,
+                accessToken,
+                refreshToken,
             };
         } catch (error) {
             throw new UnauthorizedException('Refresh token không hợp lệ');
@@ -372,7 +361,7 @@ export class AuthService {
             where: { id: userId },
         });
         if (!findUser) {
-            throw new HttpException('User không tồn tại', 401);
+            throw new NotFoundException('User không tồn tại');
         }
 
         const checkOldPassword = await bcrypt.compare(
@@ -380,44 +369,13 @@ export class AuthService {
             findUser.password,
         );
         if (!checkOldPassword) {
-            throw new HttpException('Mật khẩu cũ không chính xác', 401);
+            throw new UnauthorizedException('Mật khẩu cũ không chính xác');
         }
 
         const newPasswordHashed = await bcrypt.hash(dto.newPassword, 10);
 
         findUser.password = newPasswordHashed;
         findUser.tokenVersion++;
-        await this.userRepository.save(findUser);
-
-        //Cache
-        await this.businessCacheRepository.cacheTokenVersion(
-            findUser.id,
-            findUser.tokenVersion,
-        );
-
-        return 'Đổi mật khẩu thành công';
-    }
-
-    async mustChangePassword(userId: string, dto: ChangePasswordDto) {
-        const findUser = await this.userRepository.findOne({
-            where: { id: userId, mustChangePassword: true },
-        });
-        if (!findUser) {
-            throw new HttpException('User không tồn tại', 401);
-        }
-        const checkOldPassword = await bcrypt.compare(
-            dto.oldPassword,
-            findUser.password,
-        );
-        if (!checkOldPassword) {
-            throw new HttpException('Mật khẩu cũ không chính xác', 401);
-        }
-
-        const newPasswordHashed = await bcrypt.hash(dto.newPassword, 10);
-
-        findUser.password = newPasswordHashed;
-        findUser.tokenVersion++;
-        findUser.mustChangePassword = false;
         await this.userRepository.save(findUser);
 
         //Cache
@@ -430,7 +388,7 @@ export class AuthService {
     }
 
     async forgotPassword(email: string, role: string) {
-        if (role !== 'user' && role !== 'store') {
+        if (role !== 'user' && role !== 'admin') {
             throw new BadRequestException('Role không hợp lệ');
         }
 
@@ -438,15 +396,14 @@ export class AuthService {
             where: { email: email, role: role },
         });
         if (!findUser) {
-            throw new HttpException('Email không tồn tại', 401);
+            throw new BadRequestException('Email không tồn tại');
         }
 
         const otpCountdown =
             await this.businessCacheRepository.getOtpCountdown(email);
         if (otpCountdown && Number(otpCountdown) > 0) {
-            throw new HttpException(
+            throw new BadRequestException(
                 `Bạn đã gửi OTP quá nhanh, vui lòng chờ ${otpCountdown} giây để gửi lại`,
-                401,
             );
         }
 
@@ -479,10 +436,10 @@ export class AuthService {
         );
 
         if (!otpFind) {
-            throw new HttpException('OTP không hợp lệ', 401);
+            throw new BadRequestException('OTP không hợp lệ');
         }
         if (otpFind !== otp) {
-            throw new HttpException('OTP không hợp lệ', 401);
+            throw new BadRequestException('OTP không hợp lệ');
         }
 
         const newPasswordHashed = await bcrypt.hash(newPassword, 10);
@@ -490,7 +447,7 @@ export class AuthService {
             where: { email: email, role: role },
         });
         if (!findUser) {
-            throw new HttpException('User không tồn tại', 401);
+            throw new NotFoundException('User không tồn tại');
         }
         findUser.password = newPasswordHashed;
         findUser.tokenVersion++;

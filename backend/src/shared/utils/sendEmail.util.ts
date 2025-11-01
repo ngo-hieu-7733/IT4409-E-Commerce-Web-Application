@@ -4,7 +4,7 @@ import {
     genHtmlStoreAccount,
     genHtmlStoreAccountReject,
     genHtmlVerifyForgotEmail,
-} from './genHTML.util';
+} from '../../modules/send-email/genHTML.util';
 
 const nodemailer = require('nodemailer');
 

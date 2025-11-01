@@ -11,7 +11,6 @@ export class SendEmailConsumer extends WorkerHost {
     constructor() {
         super();
 
-        // Server chính (SMTP riêng hoặc Gmail chính)
         this.transporter = nodemailer.createTransport({
             host: process.env.EMAIL_HOST,
             port: Number(process.env.EMAIL_PORT) || 465,
@@ -22,7 +21,6 @@ export class SendEmailConsumer extends WorkerHost {
             },
         });
 
-        // Server dự phòng
         this.transporter2 = nodemailer.createTransport({
             service: 'gmail',
             auth: {

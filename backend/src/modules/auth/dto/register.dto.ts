@@ -23,7 +23,7 @@ export class RegisterDto {
 
     @ApiProperty({ example: '+84898610991' })
     @IsNotEmpty()
-    @IsPhoneNumber()
+    @IsPhoneNumber('VN', { message: 'Số điện thoại không hợp lệ hoặc không phải số điện thoại Việt Nam' })
     phone: string;
 
     @ApiProperty({ example: 'Thach Ha - Ha Tinh' })
