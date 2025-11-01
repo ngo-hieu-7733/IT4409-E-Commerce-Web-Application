@@ -1,103 +1,84 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
-import { plainToInstance } from 'class-transformer';
-import * as bcrypt from 'bcrypt';
-import { sendMailForgotPasswordStore } from 'src/shared/utils/sendEmail.util';
-import { GetNotificationsDto } from './dto/get-notification.dto';
-import { ReadNotificationResponseDto } from './dto/read-notification-response.dto';
-import { getStrongPassword } from 'src/shared/utils/getPassWord';
-import { BusinessCacheRepository } from '../redis/business-cache.repository';
+import { PaginationDto } from './dto/pagination.dto';
+import { UpdateUserStatusDto } from './dto/update-user-status.dto';
+import { UpdateMyProfileDto } from './dto/update-my-profile.dto';
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
-
-        private readonly businessCacheRepository: BusinessCacheRepository,
     ) {}
 
-    async getMyInfo(userId) {
-        const findUser = await this.userRepository.findOne({
-            where: { id: userId },
-        });
-        if (!findUser) {
-            throw new HttpException('User không tồn tại', 404);
+    async listUsers(pagination: PaginationDto) {
+        const where: any = {};
+        if (pagination.search) {
+            where.email = Like(`%${pagination.search}%`);
         }
-        return findUser;
+
+        const page = pagination.page ?? 1;
+        const limit = pagination.limit ?? 10;
+        const [items, total] = await this.userRepository.findAndCount({
+            skip: (page - 1) * limit,
+            take: limit,
+            order: { createdAt: 'DESC' },
+            where,
+        });
+
+        return {
+            data: items,
+            meta: { page, limit, total },
+        };
     }
 
-    async updateUser(userId, dto: UpdateUserDto) {
+    async getUserById(id: string) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User không tồn tại');
+        }
+        return user;
+    }
+
+    async updateUserStatus(id: string, dto: UpdateUserStatusDto) {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException('User không tồn tại');
+        }
+        user.isActive = dto.isActive;
+        await this.userRepository.save(user);
+        return 'Cập nhật trạng thái thành công';
+    }
+
+    async getMyProfile(userId: string) {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User không tồn tại');
+      }
+      return user;
+    }
+
+    async updateMyProfile(userId: string, dto: UpdateMyProfileDto) {
         if (!dto || Object.keys(dto).length === 0) {
-            return { message: 'Không có gì để cập nhật' };
+            throw new BadRequestException('Không có dữ liệu để cập nhật');
         }
-
-        const findUser = await this.userRepository.findOne({
+        const user = await this.userRepository.findOne({
             where: { id: userId },
         });
-        if (!findUser) {
-            throw new HttpException('User không tồn tại', 404);
+        if (!user) {
+            throw new NotFoundException('User không tồn tại');
         }
 
-        if (dto.phone !== undefined) {
-            const checkPhone = await this.userRepository.findOne({
-                where: { phone: dto.phone },
-            });
-            if (checkPhone) {
-                throw new HttpException('Số điện thoại đã tồn tại', 400);
-            }
-        }
+        Object.assign(user, dto);
 
-        Object.assign(findUser, dto);
+        await this.userRepository.save(user);
 
-        await this.userRepository.save(findUser);
-        return 'Cập nhật thành công';
-    }
-
-    async forgotPasswordStoreAccount(userId: string) {
-        const findUser = await this.userRepository.findOne({
-            where: { id: userId },
-        });
-        if (!findUser) {
-            throw new HttpException('User không tồn tại', 404);
-        }
-
-        const findStoreAcc = await this.userRepository.findOne({
-            where: { email: findUser.email, role: 'store' },
-        });
-
-        if (!findStoreAcc) {
-            throw new HttpException('User không tồn tại', 404);
-        }
-
-        const newPassword = getStrongPassword(10);
-        const newPasswordHashed = await bcrypt.hash(newPassword, 10);
-
-        findStoreAcc.password = newPasswordHashed;
-        findStoreAcc.tokenVersion++;
-
-        //Cache
-        await this.businessCacheRepository.cacheTokenVersion(
-            findStoreAcc.id,
-            findStoreAcc.tokenVersion,
-        );
-
-        await this.userRepository.save(findStoreAcc);
-
-        sendMailForgotPasswordStore(
-            findUser.email,
-            `Mật khẩu mới cho store ${findStoreAcc.fullName}`,
-            {
-                storename: findStoreAcc.fullName,
-                password: newPassword,
-                email: findStoreAcc.email,
-            },
-            process.env.NODE_ENV,
-        );
-        return 'Mật khẩu mới đã được gửi vào email của bạn';
+        return 'Cập nhật thông tin thành công';
     }
 }

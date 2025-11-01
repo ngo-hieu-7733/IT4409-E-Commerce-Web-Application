@@ -20,14 +20,6 @@ export const AdminAuth = () => {
     );
 };
 
-export const StoreAuth = () => {
-    return applyDecorators(
-        UseGuards(AuthGuard, RoleGuard),
-        ApiBearerAuth('access-token'),
-        Roles('store'),
-    );
-};
-
 export const AllAuth = () => {
     return applyDecorators(UseGuards(AuthGuard), ApiBearerAuth('access-token'));
 };
