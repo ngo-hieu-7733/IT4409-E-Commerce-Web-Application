@@ -8,13 +8,7 @@ import { CustomCacheModule } from '../redis/custom-cache.module';
 import { BusinessCacheRepository } from '../redis/business-cache.repository';
 
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([
-            User,
-        ]),
-        JwtModule,
-        CustomCacheModule,
-    ],
+    imports: [TypeOrmModule.forFeature([User]), JwtModule, CustomCacheModule],
     controllers: [UserController],
     providers: [UserService, BusinessCacheRepository],
 })

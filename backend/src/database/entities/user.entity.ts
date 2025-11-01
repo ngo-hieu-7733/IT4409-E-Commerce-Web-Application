@@ -1,6 +1,16 @@
-import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    Unique,
+    OneToMany,
+    CreateDateColumn,
+    UpdateDateColumn,
+} from 'typeorm';
+import { Order } from './order.entity';
+import { Review } from './review.entity';
 
-@Entity()
+@Entity({ name: 'users' })
 @Unique(['email', 'role'])
 export class User {
     @PrimaryGeneratedColumn('uuid')
@@ -15,7 +25,7 @@ export class User {
     @Column()
     password: string;
 
-    @Column({ nullable: true, unique: true })
+    @Column({ name: 'phone_number', nullable: true, unique: true })
     phone: string;
 
     @Column({ nullable: true })
@@ -37,16 +47,17 @@ export class User {
     @Column({ default: false })
     mustChangePassword: boolean;
 
-    @Column({ nullable: false, default: 0 })
-    quota: number;
-
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
-    @Column({
-        type: 'timestamp',
-        default: () => 'CURRENT_TIMESTAMP',
-        onUpdate: 'CURRENT_TIMESTAMP',
-    })
+    @UpdateDateColumn({ name: 'updated_at' })
     updatedAt: Date;
+
+    // -----------------
+
+    @OneToMany(() => Order, (order) => order.user)
+    orders: Order[];
+
+    @OneToMany(() => Review, (review) => review.user)
+    reviews: Review[];
 }
