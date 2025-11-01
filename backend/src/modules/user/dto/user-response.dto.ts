@@ -4,22 +4,22 @@ import { Exclude, Expose } from 'class-transformer';
 @Exclude()
 export class UserResponseDto {
     @Expose()
+    @ApiProperty({ example: '1' })
+    id: string;
+
+    @Expose()
     @ApiProperty({ example: 'Nguyen Thai Hieu' })
-    fullName: string;
+    username: string;
 
     @Expose()
-    @ApiProperty({ example: '0123456789' })
-    phone: string;
-
-    @Expose()
-    @ApiProperty({ example: 'nguyenthaihieu@gmail.com' })
+    @ApiProperty({ example: 'thaihieu191@gmail.com' })
     email: string;
 
     @Expose()
-    @ApiProperty({ example: 'Hà Nội' })
-    address: string;
+    @ApiProperty({ example: true })
+    isActive: boolean;
 
     @Expose()
-    @ApiProperty({ example: 'user' })
-    role: string;
+    @ApiProperty({ example: new Date() })
+    createdAt: Date;
 }
