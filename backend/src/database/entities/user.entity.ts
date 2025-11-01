@@ -1,58 +1,63 @@
-
 import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  Unique,
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    Unique,
+    OneToMany,
+    CreateDateColumn,
+    UpdateDateColumn,
 } from 'typeorm';
+import { Order } from './order.entity';
+import { Review } from './review.entity';
 
-@Entity()
+@Entity({ name: 'users' })
 @Unique(['email', 'role'])
 export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-  @Column({ nullable: false })
-  fullName: string;
+    @Column({ nullable: false })
+    fullName: string;
 
-  @Column()
-  email: string;
+    @Column()
+    email: string;
 
-  @Column()
-  password: string;
+    @Column()
+    password: string;
 
-  @Column({ nullable: true, unique: true })
-  phone: string;
+    @Column({ name: 'phone_number', nullable: true, unique: true })
+    phone: string;
 
-  @Column({ nullable: true })
-  address: string;
+    @Column({ nullable: true })
+    address: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+    @Column({ default: true })
+    isActive: boolean;
 
-  @Column({ nullable: false, default: 1 })
-  tokenVersion: number;
+    @Column({ nullable: false, default: 1 })
+    tokenVersion: number;
 
-  @Column({
-    type: 'enum',
-    enum: ['user', 'store', 'admin'],
-    default: 'user',
-  })
-  role: string;
+    @Column({
+        type: 'enum',
+        enum: ['user', 'admin'],
+        default: 'user',
+    })
+    role: string;
 
-  @Column({ default: false })
-  mustChangePassword: boolean;
+    @Column({ default: false })
+    mustChangePassword: boolean;
 
-  @Column({ nullable: false, default: 0 })
-  quota: number;
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
 
-  @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    onUpdate: 'CURRENT_TIMESTAMP',
-  })
-  updatedAt: Date;
+    // -----------------
+
+    @OneToMany(() => Order, (order) => order.user)
+    orders: Order[];
+
+    @OneToMany(() => Review, (review) => review.user)
+    reviews: Review[];
 }

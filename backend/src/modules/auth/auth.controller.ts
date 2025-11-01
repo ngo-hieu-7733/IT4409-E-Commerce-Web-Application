@@ -1,10 +1,9 @@
 import {
     Controller,
     Post,
-    Get,
     Req,
     Body,
-    HttpException,
+    UnauthorizedException,
     Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -20,7 +19,7 @@ import { VerifyForgotPasswordDto } from './dto/verify-forgot-password.dto';
 import { AllAuth } from 'src/shared/decorators/role-auth.decorator';
 import { CustomResponse } from 'src/shared/decorators/custom-response.decorator';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { LoginStoreResponseDto } from './dto/login-store-response.dto';
+import { LoginAdminResponseDto } from './dto/login-admin-response.dto';
 import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
 
 @Controller('/auth')
@@ -29,7 +28,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('register')
-    @CustomResponse('number', {
+    @CustomResponse('string', {
         code: 201,
         message: 'Đã đăng ký',
         description: '[all] Đăng ký tài khoản',
@@ -62,24 +61,24 @@ export class AuthController {
     @CustomResponse(LoginResponseDto, {
         code: 201,
         message: 'Đăng nhập thành công',
-        description: '[user, admin] Đăng nhập',
+        description: '[user] Đăng nhập',
     })
     async login(@Body() dto: LoginDto) {
         return await this.authService.login(dto);
     }
 
-    @Post('login-store')
-    @CustomResponse(LoginStoreResponseDto, {
+    @Post('login-admin')
+    @CustomResponse(LoginAdminResponseDto, {
         code: 201,
         message: 'Đăng nhập thành công',
-        description: '[store] Đăng nhập cho tài khoản store',
+        description: '[admin] Đăng nhập cho tài khoản admin',
     })
-    @ApiOperation({ summary: '[store] Đăng nhập cho tài khoản store' })
-    async loginStore(@Body() dto: LoginDto) {
-        return await this.authService.loginStore(dto);
+    @ApiOperation({ summary: '[admin] Đăng nhập cho tài khoản admin' })
+    async loginAdmin(@Body() dto: LoginDto) {
+        return await this.authService.loginAdmin(dto);
     }
 
-    @Get('logout')
+    @Post('logout')
     @CustomResponse('string', {
         code: 200,
         message: 'Đăng xuất thành công',
@@ -90,13 +89,13 @@ export class AuthController {
     async logout(@Req() req: Request & { user?: any }) {
         const refreshToken = req.headers['refreshtoken'] as string;
         if (!refreshToken) {
-            throw new HttpException('Không tìm thấy refresh token', 400);
+            throw new UnauthorizedException('Không tìm thấy refresh token');
         }
         const result = await this.authService.logout(refreshToken);
         return result;
     }
 
-    @Get('refresh-token')
+    @Post('refresh-token')
     @CustomResponse(RefreshTokenResponseDto, {
         code: 200,
         message: 'Refresh token thành công',
@@ -106,7 +105,7 @@ export class AuthController {
     async refresh_token(@Req() req: Request & { user?: any }) {
         const refreshToken = req.headers['refreshtoken'] as string;
         if (!refreshToken) {
-            throw new HttpException('Không tìm thấy refresh token', 400);
+            throw new UnauthorizedException('Không tìm thấy refresh token');
         }
         return await this.authService.refresh_token(refreshToken);
     }
@@ -123,20 +122,6 @@ export class AuthController {
         @Body() dto: ChangePasswordDto,
     ) {
         return this.authService.changePassword(req.user.id, dto);
-    }
-
-    @Post('must-change-password')
-    @CustomResponse('string', {
-        code: 201,
-        message: 'Bắt buộc thay đổi mật khẩu thành công',
-        description: '[all] Bắt buộc thay đổi mật khẩu',
-    })
-    @AllAuth()
-    async mustChangePassword(
-        @Req() req: Request & { user?: any },
-        @Body() dto: ChangePasswordDto,
-    ) {
-        return this.authService.mustChangePassword(req.user.id, dto);
     }
 
     @Post('forgot-password')

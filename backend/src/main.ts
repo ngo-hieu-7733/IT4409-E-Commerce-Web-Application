@@ -9,6 +9,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(app.get(ResponseInterceptor));
   app.useGlobalFilters(new AllExceptionsFilter());

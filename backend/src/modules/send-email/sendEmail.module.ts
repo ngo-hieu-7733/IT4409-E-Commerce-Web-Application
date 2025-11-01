@@ -9,7 +9,9 @@ import { SendEmailConsumer } from './sendEmail.consumer';
         BullModule.registerQueue({
             name: QueueName.SEND_EMAIL,
         }),
-        
+        BullModule.registerQueue({
+            name: QueueName.DEATH_SEND_EMAIL,
+        }),
     ],
     providers: [SendEmailService, SendEmailConsumer],
     exports: [SendEmailService],

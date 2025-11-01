@@ -8,7 +8,7 @@ import {
     genHtmlStoreAccount,
     genHtmlStoreAccountReject,
     genHtmlVerifyForgotEmail,
-} from 'src/shared/utils/genHTML.util';
+} from 'src/modules/send-email/genHTML.util';
 
 @Injectable()
 export class SendEmailService {
@@ -31,7 +31,7 @@ export class SendEmailService {
             { to, subject, html },
             {
                 removeOnComplete: true,
-                attempts: 2,
+                attempts: 4,
                 backoff: {
                     type: 'exponential',
                     delay: 1000,
@@ -56,6 +56,11 @@ export class SendEmailService {
             { to, subject, html },
             {
                 removeOnComplete: true,
+                attempts: 4,
+                backoff: {
+                    type: 'exponential',
+                    delay: 1000,
+                },
             },
         );
     }
@@ -79,6 +84,11 @@ export class SendEmailService {
             { to, subject, html },
             {
                 removeOnComplete: true,
+                attempts: 4,
+                backoff: {
+                    type: 'exponential',
+                    delay: 1000,
+                },
             },
         );
     }
@@ -98,6 +108,11 @@ export class SendEmailService {
             { to, subject, html },
             {
                 removeOnComplete: true,
+                attempts: 4,
+                backoff: {
+                    type: 'exponential',
+                    delay: 1000,
+                },
             },
         );
     }
@@ -121,6 +136,11 @@ export class SendEmailService {
             { to, subject, html },
             {
                 removeOnComplete: true,
+                attempts: 4,
+                backoff: {
+                    type: 'exponential',
+                    delay: 1000,
+                },
             },
         );
     }
